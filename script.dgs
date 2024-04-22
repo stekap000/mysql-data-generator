@@ -1,0 +1,92 @@
+// Any line that does not contain specific keywords (defined by this language) is considered a comment (like this line)
+
++----------------------------------------------+
+| We use config for setting various parameters |
++----------------------------------------------+
+config <= database_name, db_sarlota
+config <= auto_increment_base, 7000
+config <= sample_width, 1
+config <= start_date_year, 2023
+config <= end_date_year, 2023
+// config <= start_date_month, 3
+// config <= end_date_month, 12
+// config <= start_date_day, 3
+// config <= end_date_day, 12
+config <= custom_link_max_x, 20
+config <= custom_link_max_y, 20
+
++--------------------------------------------------------------------------------------------------------------------------------+
+| This is the way we define types																								 |
+| Every type has a name and a list of subtypes, where subtypes can't be user defined types (since sql database doesn't allow it) |
+| If certain type will be chained, we must define which specific fields will be chained (we use ':chained' after subtype)		 |
++--------------------------------------------------------------------------------------------------------------------------------+
+type <= kontakt <= int, string, string, string, string, string
+type <= zaposleni <= int, string, string, string, string, float, boolean, string
+type <= narudzba <= int, datetime, datetime, int, string, string, string, string, string, string, boolean, float, string, int:chained
+type <= recept <= int, string, string, boolean, string 
+type <= nabavka <= int, date, double
+type <= namirnica <= int, string, float, string
+type <= nabavka_namirnice <= int, int:chained, int:chained, float
+type <= namirnica_u_receptu <= int, int:chained, int:chained, float
+
++-------------------------------------------------------------------------------------------------------------------+
+| With chain, we can impose a rule that certain type can't be generated without prior generation of different types |
++-------------------------------------------------------------------------------------------------------------------+
+chain <= narudzba <= recept
+chain <= nabavka_namirnice <= nabavka, namirnica
+chain <= namirnica_u_receptu <= recept, namirnica
+
++---------------------------------------------------------------------------------------------------------+
+| Link represents relation between two columns and it has a name and the type (already defined or custom) |
+| Custom represents piecewise linear function															  |
+| For already defined functions (like sin), parameters depend on function type							  |
+| For example, sin function has these parameters: amplitude, frequency, min x (phase), max x			  |
+| For custom function, parameters are: x1, y1, x2, y2, ...												  |
++---------------------------------------------------------------------------------------------------------+
+link <= datum_cijena <= abssin, 3, 0.1, 100, 365
+link <= custom_link <= custom, 0, 0, 0.5, 0.5, 1, 0
+
++--------------------------------------------------------------------------------------------------------------------------------+
+| We can bind defined link to certain type fields by defining type, link name, and domain and codomain fields index (0-indexing) |
+| Chained fields and ids should not be a part of binding. Also, there should not be multiple bindings on same fields			 |
+| Behaviour in these cases is not handled and can easily lead to faulty data													 |
+| It is also possible to create ABSTRACT BIND between actual type field and abstract field										 |
+| If we want to use this option, we do it by setting index of the first field to -1												 |
+| Result of doing this is that we can generate certain value pattern for one field only, by using same structure that 			 |
+| we use for generating value pattern for two related fields																	 |
++--------------------------------------------------------------------------------------------------------------------------------+
+bind <= nabavka, datum_cijena <= 1, 2
+bind <= nabavka, custom_link <= -1, 2
+
++------------------------------------------+
+| We can unbind link bound to certain type |
++------------------------------------------+
+//unbind <= nabavka, datum_cijena
+unbind <= nabavka, custom_link
+
++--------------------------------------------------------+
+| Generators define bulks of data that will be generated |
++--------------------------------------------------------+
+generator <= nabavke_gen <= nabavka, 30
+generator <= nabavka_namirnice_gen <= nabavka_namirnice, 10
+
++---------------------------------------------------------------------------+
+| We can execute specific, already defined generator by specifying its name |
++---------------------------------------------------------------------------+
+execute <= nabavka_namirnice_gen
+
++---------------------------------------------------------------------------------------------------------+
+| We use config here to set another value for the given parameter, right after one execution has happened |
+| This way we can control parameters between executions													  |
++---------------------------------------------------------------------------------------------------------+
+config <= auto_increment_base, 8000
+
+execute <= nabavke_gen
+
++-------------------------------------------------------------------------------------------------------------------+
+| We can execute all generators by using 'all' keyword (useful when we don't change config info between executions) |
++-------------------------------------------------------------------------------------------------------------------+
+//execute <= all
+
+
+
