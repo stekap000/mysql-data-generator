@@ -18,7 +18,7 @@ public class DataTransform{
 	
 	public String doubleToSubtypeString(String subtype, double value){
 		try{
-			// CURRENTLY, WE DON'T ACTUALLY MAKE DISTINCTION BETWEEN DATE AND DATETIME (THEY ARE THE SAME THING)
+			// Currently, we don't actually make distinction between date and datetime
 			if("date".equals(subtype) || "datetime".equals(subtype)){
 				// It is assumed that the value represents number of days here (when rounded)
 				
